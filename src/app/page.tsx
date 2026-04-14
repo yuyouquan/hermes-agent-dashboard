@@ -4,22 +4,44 @@ import { useMemo } from "react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentJobs } from "@/components/dashboard/recent-jobs";
 import { useHermesJobs } from "@/lib/hooks";
-import type { DashboardStats } from "@/lib/types";
+import { getJobStatus, type DashboardStats } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
 export default function OverviewPage() {
   const { jobs, loading, error } = useHermesJobs();
 
   const stats: DashboardStats = useMemo(() => {
-    const activeJobs = jobs.filter((j) => j.enabled && !j.paused).length;
-    const pausedJobs = jobs.filter((j) => j.paused).length;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+
+    let activeJobs = 0;
+    let pausedJobs = 0;
+    let completedJobs = 0;
+    let failedJobs = 0;
+    let upcomingToday = 0;
+
+    for (const job of jobs) {
+      const status = getJobStatus(job);
+      if (status === "paused") pausedJobs++;
+      else if (status === "completed") completedJobs++;
+      else if (status === "failed") failedJobs++;
+      else if (job.enabled) activeJobs++;
+
+      if (job.next_run_at) {
+        const next = new Date(job.next_run_at);
+        if (next >= todayStart && next < todayEnd) upcomingToday++;
+      }
+    }
+
     return {
       totalJobs: jobs.length,
       activeJobs,
       pausedJobs,
-      totalSessions: 0,
-      totalTokens: 0,
-      totalCost: 0,
+      completedJobs,
+      failedJobs,
+      upcomingToday,
     };
   }, [jobs]);
 
@@ -47,25 +69,19 @@ export default function OverviewPage() {
           <h3 className="mb-4 text-base font-semibold">Quick Start</h3>
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              1. Make sure your Hermes Agent is running with the API server
-              enabled.
+              1. Make sure Hermes Agent gateway is running with the API server enabled.
             </p>
             <p>
-              2. Set <code className="rounded bg-muted px-1.5 py-0.5 text-xs">NEXT_PUBLIC_HERMES_API_URL</code> in{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code> if
-              Hermes is not at localhost:8642.
+              2. Visit the <strong>Kanban</strong> page to manage cron jobs — pause,
+              resume, run immediately, or view detailed status & error history.
             </p>
             <p>
-              3. Use the <strong>Kanban</strong> tab to see all scheduled jobs
-              organized by status.
+              3. Click any job card to see the full prompt, schedule details, last
+              run error messages, and delivery target.
             </p>
             <p>
-              4. Use the <strong>Chat</strong> tab to interact with Hermes
-              directly.
-            </p>
-            <p>
-              5. Use the <strong>Sessions</strong> tab to browse conversation
-              history.
+              4. Use <strong>Chat</strong> to send messages to Hermes directly from
+              the browser.
             </p>
           </div>
         </div>

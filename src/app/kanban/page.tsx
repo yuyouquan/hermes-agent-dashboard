@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { KanbanBoard } from "@/components/kanban/board";
+import { JobDetail } from "@/components/kanban/job-detail";
 import { useHermesJobs } from "@/lib/hooks";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { HermesJob } from "@/lib/types";
 
 export default function KanbanPage() {
   const { jobs, loading, error, refetch } = useHermesJobs();
+  const [selected, setSelected] = useState<HermesJob | null>(null);
 
   if (loading) {
     return (
@@ -35,8 +39,14 @@ export default function KanbanPage() {
       )}
 
       <div className="flex-1 overflow-hidden">
-        <KanbanBoard jobs={jobs} onRefresh={refetch} />
+        <KanbanBoard jobs={jobs} onRefresh={refetch} onSelect={setSelected} />
       </div>
+
+      <JobDetail
+        job={selected}
+        open={selected !== null}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }

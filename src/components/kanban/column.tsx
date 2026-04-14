@@ -3,12 +3,13 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { KanbanColumn } from "@/lib/types";
+import type { HermesJob, KanbanColumn } from "@/lib/types";
 import { JobCard } from "./card";
 
 interface KanbanColumnViewProps {
   readonly column: KanbanColumn;
   readonly onAction: (action: string, jobId: string) => void;
+  readonly onSelect: (job: HermesJob) => void;
 }
 
 const COLUMN_COLORS: Record<string, string> = {
@@ -19,11 +20,15 @@ const COLUMN_COLORS: Record<string, string> = {
   paused: "border-t-gray-400",
 };
 
-export function KanbanColumnView({ column, onAction }: KanbanColumnViewProps) {
+export function KanbanColumnView({
+  column,
+  onAction,
+  onSelect,
+}: KanbanColumnViewProps) {
   return (
     <div
       className={cn(
-        "flex w-72 min-w-72 flex-col rounded-lg border border-border border-t-2 bg-card",
+        "flex w-80 min-w-80 flex-col rounded-lg border border-border border-t-2 bg-card",
         COLUMN_COLORS[column.id]
       )}
     >
@@ -42,7 +47,12 @@ export function KanbanColumnView({ column, onAction }: KanbanColumnViewProps) {
             </p>
           ) : (
             column.jobs.map((job) => (
-              <JobCard key={job.id} job={job} onAction={onAction} />
+              <JobCard
+                key={job.id}
+                job={job}
+                onAction={onAction}
+                onSelect={onSelect}
+              />
             ))
           )}
         </div>

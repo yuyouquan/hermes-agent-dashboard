@@ -1,21 +1,19 @@
 "use client";
 
 import { useCallback } from "react";
-import type { HermesJob, JobStatus, KanbanColumn } from "@/lib/types";
+import {
+  type HermesJob,
+  type JobStatus,
+  type KanbanColumn,
+  getJobStatus,
+} from "@/lib/types";
 import { KanbanColumnView } from "./column";
 import { pauseJob, resumeJob, runJob, deleteJob } from "@/lib/api";
 
 interface KanbanBoardProps {
   readonly jobs: readonly HermesJob[];
   readonly onRefresh: () => void;
-}
-
-function getJobStatus(job: HermesJob): JobStatus {
-  if (job.paused) return "paused";
-  if (!job.enabled) return "completed";
-  if (job.last_run && !job.next_run) return "completed";
-  if (job.next_run) return "pending";
-  return "running";
+  readonly onSelect: (job: HermesJob) => void;
 }
 
 const COLUMNS: readonly { id: JobStatus; title: string }[] = [
@@ -26,7 +24,7 @@ const COLUMNS: readonly { id: JobStatus; title: string }[] = [
   { id: "paused", title: "Paused" },
 ];
 
-export function KanbanBoard({ jobs, onRefresh }: KanbanBoardProps) {
+export function KanbanBoard({ jobs, onRefresh, onSelect }: KanbanBoardProps) {
   const columns: readonly KanbanColumn[] = COLUMNS.map(({ id, title }) => ({
     id,
     title,
@@ -51,8 +49,8 @@ export function KanbanBoard({ jobs, onRefresh }: KanbanBoardProps) {
             break;
         }
         onRefresh();
-      } catch (err) {
-        // Error is visible in network tab; could add toast later
+      } catch {
+        // Swallow; user will see no state change
       }
     },
     [onRefresh]
@@ -65,6 +63,7 @@ export function KanbanBoard({ jobs, onRefresh }: KanbanBoardProps) {
           key={column.id}
           column={column}
           onAction={handleAction}
+          onSelect={onSelect}
         />
       ))}
     </div>

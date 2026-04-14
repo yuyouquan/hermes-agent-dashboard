@@ -2,13 +2,18 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { HermesJob, JobStatus } from "@/lib/types";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { type HermesJob, type JobStatus, getJobStatus } from "@/lib/types";
+import { formatRelativeTime } from "@/lib/time";
 
 interface RecentJobsProps {
   readonly jobs: readonly HermesJob[];
 }
 
-const STATUS_VARIANT: Record<JobStatus, "default" | "secondary" | "destructive" | "outline"> = {
+const STATUS_VARIANT: Record<
+  JobStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   pending: "outline",
   running: "default",
   completed: "secondary",
@@ -24,16 +29,14 @@ const STATUS_LABEL: Record<JobStatus, string> = {
   paused: "Paused",
 };
 
-function getJobStatus(job: HermesJob): JobStatus {
-  if (job.paused) return "paused";
-  if (!job.enabled) return "completed";
-  if (job.last_run && !job.next_run) return "completed";
-  if (job.next_run) return "pending";
-  return "running";
-}
-
 export function RecentJobs({ jobs }: RecentJobsProps) {
-  const recentJobs = [...jobs].slice(0, 8);
+  const recentJobs = [...jobs]
+    .sort((a, b) => {
+      const aTime = a.last_run_at ?? a.next_run_at ?? a.created_at;
+      const bTime = b.last_run_at ?? b.next_run_at ?? b.created_at;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    })
+    .slice(0, 8);
 
   return (
     <Card>
@@ -52,12 +55,21 @@ export function RecentJobs({ jobs }: RecentJobsProps) {
               return (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between rounded-md border border-border p-3"
+                  className="flex items-center justify-between gap-3 rounded-md border border-border p-3"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{job.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {job.schedule}
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium">{job.name}</p>
+                      {job.last_status === "ok" && (
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                      )}
+                      {job.last_status === "error" && (
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
+                      )}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {job.schedule_display}
+                      {job.next_run_at && ` · next ${formatRelativeTime(job.next_run_at)}`}
                     </p>
                   </div>
                   <Badge variant={STATUS_VARIANT[status]}>

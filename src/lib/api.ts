@@ -95,26 +95,38 @@ export async function runJob(id: string): Promise<void> {
   });
 }
 
-// Sessions (via SQLite — requires a proxy endpoint or direct DB access)
-// For now these use mock data; connect to real backend when available
-export async function getSessions(): Promise<readonly HermesSession[]> {
-  try {
-    return await fetchApi<HermesSession[]>("/api/sessions");
-  } catch {
-    return [];
-  }
+// Sessions
+export interface ListSessionsResult {
+  readonly sessions: readonly HermesSession[];
+  readonly total: number;
+  readonly limit: number;
+  readonly offset: number;
+}
+
+export async function getSessions(params?: {
+  readonly source?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+}): Promise<ListSessionsResult> {
+  const q = new URLSearchParams();
+  if (params?.source) q.set("source", params.source);
+  if (params?.limit !== undefined) q.set("limit", String(params.limit));
+  if (params?.offset !== undefined) q.set("offset", String(params.offset));
+  const suffix = q.toString() ? `?${q.toString()}` : "";
+  return fetchApi<ListSessionsResult>(`/api/sessions${suffix}`);
+}
+
+export interface SessionDetail {
+  readonly session: HermesSession;
+  readonly messages: readonly HermesMessage[];
 }
 
 export async function getSessionMessages(
   sessionId: string
-): Promise<readonly HermesMessage[]> {
-  try {
-    return await fetchApi<HermesMessage[]>(
-      `/api/sessions/${encodeURIComponent(sessionId)}/messages`
-    );
-  } catch {
-    return [];
-  }
+): Promise<SessionDetail> {
+  return fetchApi<SessionDetail>(
+    `/api/sessions/${encodeURIComponent(sessionId)}/messages`
+  );
 }
 
 // Chat

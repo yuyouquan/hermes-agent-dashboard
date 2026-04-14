@@ -1,6 +1,57 @@
-// Hermes Agent data types
+// Hermes Agent data types — mirrors /api/jobs response shape
 
+export type JobState = "scheduled" | "paused" | "completed";
 export type JobStatus = "pending" | "running" | "completed" | "failed" | "paused";
+export type LastRunStatus = "ok" | "error" | null;
+
+export type ScheduleKind = "once" | "interval" | "cron";
+
+export interface JobSchedule {
+  readonly kind: ScheduleKind;
+  readonly display: string;
+  readonly expr?: string;
+  readonly minutes?: number;
+  readonly run_at?: string;
+}
+
+export interface JobRepeat {
+  readonly times: number | null;
+  readonly completed: number;
+}
+
+export interface JobOrigin {
+  readonly platform: string;
+  readonly chat_id?: string;
+  readonly chat_name?: string;
+  readonly thread_id?: string | null;
+}
+
+export interface HermesJob {
+  readonly id: string;
+  readonly name: string;
+  readonly prompt: string;
+  readonly skills: readonly string[];
+  readonly skill: string | null;
+  readonly model: string | null;
+  readonly provider: string | null;
+  readonly base_url: string | null;
+  readonly script: string | null;
+  readonly schedule: JobSchedule;
+  readonly schedule_display: string;
+  readonly repeat: JobRepeat;
+  readonly enabled: boolean;
+  readonly state: JobState;
+  readonly paused_at: string | null;
+  readonly paused_reason: string | null;
+  readonly created_at: string;
+  readonly next_run_at: string | null;
+  readonly last_run_at: string | null;
+  readonly last_status: LastRunStatus;
+  readonly last_error: string | null;
+  readonly last_delivery_error?: string | null;
+  readonly deliver: string;
+  readonly origin: JobOrigin | null;
+}
 
 export type Platform =
   | "local"
@@ -11,58 +62,47 @@ export type Platform =
   | "signal"
   | "matrix"
   | "email"
+  | "feishu"
   | "api";
 
-export interface HermesJob {
-  readonly id: string;
-  readonly name: string;
-  readonly schedule: string;
-  readonly skill?: string;
-  readonly skills?: readonly string[];
-  readonly context?: string;
-  readonly background?: boolean;
-  readonly deliver?: string;
-  readonly origin?: string;
-  readonly next_run?: string;
-  readonly last_run?: string;
-  readonly enabled: boolean;
-  readonly paused: boolean;
-}
-
+/** Hermes session row — started_at / ended_at are Unix timestamps (float seconds) */
 export interface HermesSession {
   readonly id: string;
-  readonly source: Platform;
-  readonly user_id?: string;
-  readonly model: string;
-  readonly system_prompt?: string;
-  readonly parent_session_id?: string;
-  readonly started_at: string;
-  readonly ended_at?: string;
-  readonly end_reason?: string;
+  readonly source: string;
+  readonly user_id: string | null;
+  readonly model: string | null;
+  readonly model_config?: string | null;
+  readonly system_prompt?: string | null;
+  readonly parent_session_id: string | null;
+  readonly started_at: number;
+  readonly ended_at: number | null;
+  readonly end_reason: string | null;
+  readonly message_count: number;
+  readonly tool_call_count: number;
   readonly input_tokens: number;
   readonly output_tokens: number;
   readonly cache_read_tokens: number;
   readonly cache_write_tokens: number;
   readonly reasoning_tokens: number;
-  readonly estimated_cost_usd: number;
-  readonly actual_cost_usd?: number;
-  readonly title?: string;
-  readonly message_count: number;
-  readonly tool_call_count: number;
+  readonly billing_provider: string | null;
+  readonly estimated_cost_usd: number | null;
+  readonly actual_cost_usd: number | null;
+  readonly title: string | null;
 }
 
+/** Hermes message row — timestamp is a Unix timestamp (float seconds) */
 export interface HermesMessage {
-  readonly id: string;
+  readonly id: number;
   readonly session_id: string;
   readonly role: "user" | "assistant" | "tool" | "system";
-  readonly content: string;
-  readonly tool_calls?: string;
-  readonly tool_name?: string;
-  readonly tool_call_id?: string;
-  readonly timestamp: string;
-  readonly token_count: number;
-  readonly finish_reason?: string;
-  readonly reasoning?: string;
+  readonly content: string | null;
+  readonly tool_call_id: string | null;
+  readonly tool_calls: unknown[] | string | null;
+  readonly tool_name: string | null;
+  readonly timestamp: number;
+  readonly token_count: number | null;
+  readonly finish_reason: string | null;
+  readonly reasoning: string | null;
 }
 
 export interface ChatMessage {
@@ -86,7 +126,16 @@ export interface DashboardStats {
   readonly totalJobs: number;
   readonly activeJobs: number;
   readonly pausedJobs: number;
-  readonly totalSessions: number;
-  readonly totalTokens: number;
-  readonly totalCost: number;
+  readonly completedJobs: number;
+  readonly failedJobs: number;
+  readonly upcomingToday: number;
+}
+
+/** Derive kanban bucket from real job fields */
+export function getJobStatus(job: HermesJob): JobStatus {
+  if (job.state === "paused") return "paused";
+  if (job.state === "completed") return "completed";
+  if (job.last_status === "error") return "failed";
+  if (!job.enabled) return "paused";
+  return job.last_run_at ? "running" : "pending";
 }
