@@ -1,65 +1,75 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useMemo } from "react";
+import { StatsCards } from "@/components/dashboard/stats-cards";
+import { RecentJobs } from "@/components/dashboard/recent-jobs";
+import { useHermesJobs } from "@/lib/hooks";
+import type { DashboardStats } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+
+export default function OverviewPage() {
+  const { jobs, loading, error } = useHermesJobs();
+
+  const stats: DashboardStats = useMemo(() => {
+    const activeJobs = jobs.filter((j) => j.enabled && !j.paused).length;
+    const pausedJobs = jobs.filter((j) => j.paused).length;
+    return {
+      totalJobs: jobs.length,
+      activeJobs,
+      pausedJobs,
+      totalSessions: 0,
+      totalTokens: 0,
+      totalCost: 0,
+    };
+  }, [jobs]);
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6 p-6">
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          {error}. Make sure Hermes is running and the API URL is configured.
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      <StatsCards stats={stats} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RecentJobs jobs={jobs} />
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h3 className="mb-4 text-base font-semibold">Quick Start</h3>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              1. Make sure your Hermes Agent is running with the API server
+              enabled.
+            </p>
+            <p>
+              2. Set <code className="rounded bg-muted px-1.5 py-0.5 text-xs">NEXT_PUBLIC_HERMES_API_URL</code> in{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">.env.local</code> if
+              Hermes is not at localhost:8642.
+            </p>
+            <p>
+              3. Use the <strong>Kanban</strong> tab to see all scheduled jobs
+              organized by status.
+            </p>
+            <p>
+              4. Use the <strong>Chat</strong> tab to interact with Hermes
+              directly.
+            </p>
+            <p>
+              5. Use the <strong>Sessions</strong> tab to browse conversation
+              history.
+            </p>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

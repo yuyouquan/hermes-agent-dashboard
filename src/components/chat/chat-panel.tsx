@@ -1,0 +1,175 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import { Send, Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChatBubble } from "./chat-bubble";
+import { useAutoScroll } from "@/lib/hooks";
+import { useChatContext } from "@/lib/chat-context";
+import type { ChatMessage } from "@/lib/types";
+import { sendChatMessage } from "@/lib/api";
+
+export function ChatPanel() {
+  const {
+    messages,
+    addMessage,
+    updateLastMessage,
+    removeLastMessage,
+    clearMessages,
+  } = useChatContext();
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { ref, scrollToBottom } = useAutoScroll<HTMLDivElement>();
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  const handleSend = useCallback(async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+
+    addMessage({
+      role: "user",
+      content: text,
+      timestamp: new Date().toISOString(),
+    });
+    setInput("");
+    setLoading(true);
+
+    try {
+      const stream = await sendChatMessage(text);
+
+      if (!stream) {
+        throw new Error("No response stream");
+      }
+
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      addMessage({
+        role: "assistant",
+        content: "",
+        timestamp: new Date().toISOString(),
+      });
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              assistantContent += delta;
+              updateLastMessage(assistantContent);
+            }
+          } catch {
+            // Skip malformed SSE chunks
+          }
+        }
+      }
+
+      if (!assistantContent) {
+        updateLastMessage("Response received (no streaming content)");
+      }
+    } catch (err) {
+      // Remove empty assistant placeholder if present
+      if (messages.length > 0 && messages[messages.length - 1]?.content === "") {
+        removeLastMessage();
+      }
+      addMessage({
+        role: "assistant",
+        content: `Error: ${err instanceof Error ? err.message : "Failed to get response"}. Make sure Hermes is running on the configured API URL.`,
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [input, loading, messages, addMessage, updateLastMessage, removeLastMessage]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
+
+  return (
+    <div className="flex h-full flex-col">
+      <ScrollArea className="flex-1 p-4" ref={ref}>
+        <div className="mx-auto max-w-3xl space-y-4">
+          {messages.length === 0 && (
+            <div className="flex h-64 flex-col items-center justify-center text-center">
+              <p className="text-lg font-medium text-muted-foreground">
+                Ask Hermes anything
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Send a message to start a conversation with your Hermes agent.
+              </p>
+            </div>
+          )}
+          {messages.map((msg, i) => (
+            <ChatBubble key={`${msg.timestamp}-${i}`} message={msg} />
+          ))}
+          {loading && messages[messages.length - 1]?.content === "" && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Thinking...
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      <div className="border-t border-border p-4">
+        <div className="mx-auto flex max-w-3xl items-end gap-2">
+          <Textarea
+            placeholder="Ask Hermes a question..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
+            className="min-h-10 max-h-32 resize-none"
+            disabled={loading}
+          />
+          <Button
+            size="icon"
+            onClick={handleSend}
+            disabled={!input.trim() || loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+          {messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={clearMessages}
+              disabled={loading}
+              title="Clear chat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
