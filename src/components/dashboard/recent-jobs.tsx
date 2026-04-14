@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { type HermesJob, type JobStatus, getJobStatus } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/time";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface RecentJobsProps {
   readonly jobs: readonly HermesJob[];
@@ -21,15 +22,15 @@ const STATUS_VARIANT: Record<
   paused: "outline",
 };
 
-const STATUS_LABEL: Record<JobStatus, string> = {
-  pending: "Pending",
-  running: "Running",
-  completed: "Completed",
-  failed: "Failed",
-  paused: "Paused",
-};
-
 export function RecentJobs({ jobs }: RecentJobsProps) {
+  const { t } = useTranslation();
+  const STATUS_LABEL: Record<JobStatus, string> = {
+    pending: t("jobs.pending"),
+    running: t("jobs.running"),
+    completed: t("jobs.completed"),
+    failed: t("jobs.failed"),
+    paused: t("jobs.paused"),
+  };
   const recentJobs = [...jobs]
     .sort((a, b) => {
       const aTime = a.last_run_at ?? a.next_run_at ?? a.created_at;
@@ -41,13 +42,11 @@ export function RecentJobs({ jobs }: RecentJobsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Recent Jobs</CardTitle>
+        <CardTitle className="text-base">{t("overview.recentJobs")}</CardTitle>
       </CardHeader>
       <CardContent>
         {recentJobs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No jobs found. Create a job in Hermes to see it here.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("overview.noJobs")}</p>
         ) : (
           <div className="space-y-3">
             {recentJobs.map((job) => {

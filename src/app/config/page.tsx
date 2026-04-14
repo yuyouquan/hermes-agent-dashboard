@@ -6,11 +6,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, FileCode, AlertCircle } from "lucide-react";
 import { getConfig } from "@/lib/api";
 import type { ConfigContent } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function ConfigPage() {
   const [config, setConfig] = useState<ConfigContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     getConfig()
@@ -31,11 +33,7 @@ export default function ConfigPage() {
     <div className="flex h-full flex-col gap-4 p-6">
       <div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-600 dark:text-yellow-400">
         <AlertCircle className="h-4 w-4 shrink-0" />
-        <span>
-          This view is <strong>read-only</strong>. Secret fields (API keys,
-          tokens) are masked server-side. Edit <code>~/.hermes/config.yaml</code>{" "}
-          directly to make changes, then restart the gateway.
-        </span>
+        <span>{t("config.warning")}</span>
       </div>
 
       {error && (
@@ -57,7 +55,7 @@ export default function ConfigPage() {
           </div>
           <ScrollArea className="flex-1">
             <pre className="whitespace-pre-wrap break-words p-4 font-mono text-[11px] leading-relaxed">
-              {config.content || "(empty file)"}
+              {config.content || t("config.empty")}
             </pre>
           </ScrollArea>
         </Card>

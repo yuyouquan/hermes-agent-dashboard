@@ -2,14 +2,16 @@
 
 import { useHealthCheck } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function HealthIndicator() {
   const health = useHealthCheck();
+  const { t } = useTranslation();
 
   const statusConfig = {
-    healthy: { color: "bg-emerald-500", label: "Connected" },
-    unhealthy: { color: "bg-red-500", label: "Disconnected" },
-    unknown: { color: "bg-yellow-500", label: "Checking..." },
+    healthy: { color: "bg-emerald-500", label: t("common.connected") },
+    unhealthy: { color: "bg-red-500", label: t("common.disconnected") },
+    unknown: { color: "bg-yellow-500", label: t("common.checking") },
   } as const;
 
   const config = statusConfig[health.status];

@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Key, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 import { getCredentials } from "@/lib/api";
 import type { CredentialEntry } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function CredentialsPage() {
   const [entries, setEntries] = useState<readonly CredentialEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [path, setPath] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     getCredentials()
@@ -53,11 +55,7 @@ export default function CredentialsPage() {
     <div className="space-y-4 p-6">
       <div className="flex items-start gap-2 rounded-md border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600 dark:text-blue-400">
         <Shield className="h-4 w-4 shrink-0" />
-        <span>
-          This view only shows which credentials are configured in{" "}
-          <code>{path}</code>. Values are masked server-side — the dashboard
-          never receives full secrets.
-        </span>
+        <span>{t("credentials.intro", { path })}</span>
       </div>
 
       {error && (
@@ -67,14 +65,14 @@ export default function CredentialsPage() {
       )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <SummaryCard label="Total Variables" value={entries.length.toString()} />
-        <SummaryCard label="Configured" value={configured.toString()} tone="success" />
+        <SummaryCard label={t("credentials.totalVariables")} value={entries.length.toString()} />
+        <SummaryCard label={t("credentials.configured")} value={configured.toString()} tone="success" />
         <SummaryCard
-          label="Unconfigured"
+          label={t("credentials.unconfigured")}
           value={(entries.length - configured).toString()}
           tone="muted"
         />
-        <SummaryCard label="Providers" value={(groups.length).toString()} />
+        <SummaryCard label={t("credentials.providers")} value={(groups.length).toString()} />
       </div>
 
       <div className="space-y-4">
@@ -105,7 +103,7 @@ export default function CredentialsPage() {
                       <span className="font-mono text-xs">{entry.key}</span>
                     </div>
                     <span className="font-mono text-xs text-muted-foreground">
-                      {entry.set ? entry.masked : "(unset)"}
+                      {entry.set ? entry.masked : t("credentials.unset")}
                     </span>
                   </div>
                 ))}

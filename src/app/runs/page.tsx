@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Play, Radio, Clock } from "lucide-react";
 import { listActiveRuns, createRun } from "@/lib/api";
 import type { ActiveRun } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface RunEvent {
   readonly event: string;
@@ -29,6 +30,7 @@ export default function RunsPage() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   const fetchActive = useCallback(async () => {
     try {
@@ -113,7 +115,7 @@ export default function RunsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Radio className="h-4 w-4" />
-              Active Runs
+              {t("runs.activeRuns")}
               <Badge variant="secondary">
                 {activeRuns.length} / {maxConcurrent}
               </Badge>
@@ -122,7 +124,7 @@ export default function RunsPage() {
           <CardContent className="space-y-2 pt-0">
             {activeRuns.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No runs in progress
+                {t("runs.noRuns")}
               </p>
             ) : (
               activeRuns.map((r) => (
@@ -137,7 +139,7 @@ export default function RunsPage() {
                   <div className="font-mono truncate">{r.run_id}</div>
                   <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
                     <Clock className="h-2.5 w-2.5" />
-                    {r.age_seconds.toFixed(0)}s · queue {r.queue_size}
+                    {r.age_seconds.toFixed(0)}s · {t("runs.queue")} {r.queue_size}
                   </div>
                 </div>
               ))
@@ -150,30 +152,28 @@ export default function RunsPage() {
       <div className="space-y-4 lg:col-span-2">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">New Run</CardTitle>
+            <CardTitle className="text-base">{t("runs.newRun")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 pt-0">
             <Textarea
-              placeholder="Enter a prompt to run with Hermes..."
+              placeholder={t("runs.promptPlaceholder")}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[100px] text-sm"
               disabled={running}
             />
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                Streams all tool calls and messages live via SSE.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("runs.streamHint")}</p>
               <Button onClick={handleRun} disabled={running || !prompt.trim()}>
                 {running ? (
                   <>
                     <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                    Running...
+                    {t("runs.running")}
                   </>
                 ) : (
                   <>
                     <Play className="mr-2 h-3.5 w-3.5" />
-                    Run
+                    {t("runs.runButton")}
                   </>
                 )}
               </Button>
@@ -188,14 +188,14 @@ export default function RunsPage() {
 
         <Card className="flex flex-1 flex-col">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Live Events</CardTitle>
+            <CardTitle className="text-base">{t("runs.liveEvents")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <ScrollArea className="h-[400px]">
               <div ref={scrollRef} className="space-y-1.5 pr-2">
                 {events.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">
-                    Run a prompt to see live events
+                    {t("runs.emptyEvents")}
                   </p>
                 ) : (
                   events.map((ev, i) => <EventLine key={i} event={ev} />)

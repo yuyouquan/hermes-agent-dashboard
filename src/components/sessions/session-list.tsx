@@ -27,6 +27,7 @@ import {
 import type { HermesSession } from "@/lib/types";
 import { getSessions, searchSessions } from "@/lib/api";
 import type { SessionSearchHit } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 import { useDebounce } from "@/lib/hooks";
 import { formatUnixRelative } from "@/lib/time";
 import { SessionDetailDialog } from "./session-detail-dialog";
@@ -52,6 +53,7 @@ export function SessionList() {
   const [deepSearchHits, setDeepSearchHits] = useState<readonly SessionSearchHit[]>([]);
   const [deepSearching, setDeepSearching] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
+  const { t } = useTranslation();
 
   // Deep full-text search across message content when query is 2+ chars
   useEffect(() => {
@@ -124,7 +126,7 @@ export function SessionList() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by title, model, or ID..."
+              placeholder={t("sessions.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -138,7 +140,7 @@ export function SessionList() {
               <SelectValue placeholder="Platform" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Platforms</SelectItem>
+              <SelectItem value="all">{t("sessions.allPlatforms")}</SelectItem>
               {platforms.map((p) => (
                 <SelectItem key={p} value={p}>
                   {p}
@@ -148,7 +150,7 @@ export function SessionList() {
           </Select>
           <Button variant="outline" size="sm" onClick={fetchSessions}>
             <RefreshCw className="mr-2 h-3.5 w-3.5" />
-            Refresh
+            {t("common.refresh")}
           </Button>
         </div>
 
@@ -163,13 +165,13 @@ export function SessionList() {
             <CardContent className="p-3">
               <div className="mb-2 flex items-center justify-between">
                 <h4 className="text-xs font-semibold uppercase text-muted-foreground">
-                  Message matches
+                  {t("sessions.messageMatches")}
                   {deepSearching && (
                     <Loader2 className="ml-2 inline h-3 w-3 animate-spin" />
                   )}
                 </h4>
                 <span className="text-[10px] text-muted-foreground">
-                  {deepSearchHits.length} hits
+                  {deepSearchHits.length} {t("sessions.hits")}
                 </span>
               </div>
               <div className="space-y-1.5">
@@ -207,8 +209,8 @@ export function SessionList() {
             <CardContent className="flex h-48 items-center justify-center">
               <p className="text-sm text-muted-foreground">
                 {sessions.length === 0
-                  ? "No sessions found yet. Start a conversation to see it here."
-                  : "No sessions match your filters."}
+                  ? t("sessions.noSessionsYet")
+                  : t("sessions.noMatches")}
               </p>
             </CardContent>
           </Card>
@@ -243,6 +245,7 @@ function SessionCard({
   readonly session: HermesSession;
   readonly onClick: () => void;
 }) {
+  const { t } = useTranslation();
   const isActive = !session.ended_at;
   const totalTokens =
     session.input_tokens +
@@ -267,7 +270,7 @@ function SessionCard({
               </span>
               {isActive && (
                 <Badge variant="default" className="text-[10px]">
-                  Active
+                  {t("sessions.active")}
                 </Badge>
               )}
             </div>
@@ -281,7 +284,7 @@ function SessionCard({
                 {session.message_count}
               </span>
               {session.tool_call_count > 0 && (
-                <span>{session.tool_call_count} tools</span>
+                <span>{session.tool_call_count} {t("sessions.tools")}</span>
               )}
               <span className="flex items-center gap-1">
                 <Cpu className="h-3 w-3" />

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useDebounce } from "@/lib/hooks";
 import type { PromptTemplate } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 const STORAGE_KEY = "hermes.dashboard.prompts.v1";
 
@@ -49,6 +50,7 @@ export default function PromptsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 200);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setPrompts(loadPrompts());
@@ -89,7 +91,7 @@ export default function PromptsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Delete this prompt?")) return;
+    if (!confirm(t("prompts.confirmDelete"))) return;
     persist(prompts.filter((p) => p.id !== id));
   };
 
@@ -112,15 +114,13 @@ export default function PromptsPage() {
 
   return (
     <div className="space-y-4 p-6">
-      <p className="text-sm text-muted-foreground">
-        Saved prompts for quick reuse. Stored in your browser — never sent to Hermes.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("prompts.intro")}</p>
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search prompts..."
+            placeholder={t("prompts.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -128,16 +128,14 @@ export default function PromptsPage() {
         </div>
         <Button onClick={handleCreate}>
           <Plus className="mr-2 h-3.5 w-3.5" />
-          New Prompt
+          {t("prompts.newPrompt")}
         </Button>
       </div>
 
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-            {prompts.length === 0
-              ? "No prompts yet. Click 'New Prompt' to create one."
-              : "No prompts match your search."}
+            {prompts.length === 0 ? t("prompts.empty") : t("prompts.noMatches")}
           </CardContent>
         </Card>
       ) : (
@@ -198,14 +196,16 @@ export default function PromptsPage() {
           <DialogHeader>
             <DialogTitle>
               {editing && prompts.find((p) => p.id === editing.id)
-                ? "Edit Prompt"
-                : "New Prompt"}
+                ? t("prompts.editPrompt")
+                : t("prompts.newPrompt")}
             </DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-3 py-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium">Name</label>
+                <label className="mb-1.5 block text-xs font-medium">
+                  {t("prompts.name")}
+                </label>
                 <Input
                   value={editing.name}
                   onChange={(e) =>
@@ -214,7 +214,9 @@ export default function PromptsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium">Content</label>
+                <label className="mb-1.5 block text-xs font-medium">
+                  {t("prompts.content")}
+                </label>
                 <Textarea
                   value={editing.content}
                   onChange={(e) =>
@@ -225,7 +227,7 @@ export default function PromptsPage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium">
-                  Tags (comma separated)
+                  {t("prompts.tagsLabel")}
                 </label>
                 <Input
                   value={editing.tags.join(", ")}
@@ -244,9 +246,9 @@ export default function PromptsPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>{t("common.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

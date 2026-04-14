@@ -9,6 +9,7 @@ import {
 } from "@/lib/types";
 import { KanbanColumnView } from "./column";
 import { pauseJob, resumeJob, runJob, deleteJob } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface KanbanBoardProps {
   readonly jobs: readonly HermesJob[];
@@ -16,18 +17,19 @@ interface KanbanBoardProps {
   readonly onSelect: (job: HermesJob) => void;
 }
 
-const COLUMNS: readonly { id: JobStatus; title: string }[] = [
-  { id: "pending", title: "Pending" },
-  { id: "running", title: "Running" },
-  { id: "completed", title: "Completed" },
-  { id: "failed", title: "Failed" },
-  { id: "paused", title: "Paused" },
+const COLUMN_IDS: readonly JobStatus[] = [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "paused",
 ];
 
 export function KanbanBoard({ jobs, onRefresh, onSelect }: KanbanBoardProps) {
-  const columns: readonly KanbanColumn[] = COLUMNS.map(({ id, title }) => ({
+  const { t } = useTranslation();
+  const columns: readonly KanbanColumn[] = COLUMN_IDS.map((id) => ({
     id,
-    title,
+    title: t(`jobs.${id}`),
     jobs: jobs.filter((job) => getJobStatus(job) === id),
   }));
 

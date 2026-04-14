@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGatewayStatus } from "@/lib/api";
 import type { GatewayPlatformStatus } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function PlatformStatus() {
   const [platforms, setPlatforms] = useState<readonly GatewayPlatformStatus[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetch = async () => {
@@ -25,11 +27,11 @@ export function PlatformStatus() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Platform Status</CardTitle>
+        <CardTitle className="text-base">{t("overview.platformStatus")}</CardTitle>
       </CardHeader>
       <CardContent>
         {platforms.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No platforms configured</p>
+          <p className="text-sm text-muted-foreground">{t("overview.noPlatforms")}</p>
         ) : (
           <div className="space-y-2">
             {platforms.map((p) => (
@@ -46,7 +48,7 @@ export function PlatformStatus() {
                   <span className="text-sm font-medium capitalize">{p.platform}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {p.connected ? "Connected" : "Disconnected"}
+                  {p.connected ? t("common.connected") : t("common.disconnected")}
                 </span>
               </div>
             ))}

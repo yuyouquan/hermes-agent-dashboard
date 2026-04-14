@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getWorkspaceTree, getWorkspaceFile } from "@/lib/api";
 import type { WorkspaceTree, WorkspaceFile } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function WorkspacePage() {
   const [currentPath, setCurrentPath] = useState("");
@@ -23,6 +24,7 @@ export default function WorkspacePage() {
   const [loading, setLoading] = useState(true);
   const [fileLoading, setFileLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +75,7 @@ export default function WorkspacePage() {
           <button
             onClick={goRoot}
             className="flex h-7 w-7 items-center justify-center rounded hover:bg-accent"
-            title="Root"
+            title={t("workspace.tooltipRoot")}
           >
             <Home className="h-3.5 w-3.5" />
           </button>
@@ -81,7 +83,7 @@ export default function WorkspacePage() {
             onClick={goUp}
             disabled={!currentPath}
             className="flex h-7 w-7 items-center justify-center rounded hover:bg-accent disabled:opacity-40"
-            title="Up"
+            title={t("workspace.tooltipUp")}
           >
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
@@ -126,7 +128,7 @@ export default function WorkspacePage() {
               ))}
             </div>
           ) : (
-            <p className="p-3 text-xs text-muted-foreground">Empty directory</p>
+            <p className="p-3 text-xs text-muted-foreground">{t("workspace.empty")}</p>
           )}
         </ScrollArea>
       </Card>
@@ -138,7 +140,8 @@ export default function WorkspacePage() {
             <div className="border-b border-border p-2">
               <p className="truncate font-mono text-xs">{selectedFile.path}</p>
               <p className="text-[10px] text-muted-foreground">
-                {formatSize(selectedFile.size)} {selectedFile.binary && "· binary"}
+                {formatSize(selectedFile.size)}{" "}
+                {selectedFile.binary && `· ${t("workspace.binary")}`}
               </p>
             </div>
             <ScrollArea className="flex-1">
@@ -153,7 +156,7 @@ export default function WorkspacePage() {
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            Select a file to preview
+            {t("workspace.selectFile")}
           </div>
         )}
       </Card>

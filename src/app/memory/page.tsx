@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Save, FileText, Plus } from "lucide-react";
 import { getMemory, updateMemory } from "@/lib/api";
 import type { MemoryFile } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 const TEMPLATES: Record<"MEMORY.md" | "USER.md", string> = {
   "MEMORY.md":
@@ -21,6 +22,7 @@ export default function MemoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const { t } = useTranslation();
 
   const fetchMemory = useCallback(async () => {
     setLoading(true);
@@ -83,10 +85,7 @@ export default function MemoryPage() {
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground">
-        These files are loaded into every agent conversation. Keep them compact
-        and focused on facts that will still matter later.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("memory.intro")}</p>
 
       {slots.map((name) => {
         const file = filesByName.get(name);
@@ -110,12 +109,12 @@ export default function MemoryPage() {
                   ) : (
                     <Save className="mr-2 h-3.5 w-3.5" />
                   )}
-                  Save
+                  {t("common.save")}
                 </Button>
               ) : (
                 <Button size="sm" variant="outline" onClick={() => createFile(name)}>
                   <Plus className="mr-2 h-3.5 w-3.5" />
-                  Create
+                  {t("common.create")}
                 </Button>
               )}
             </CardHeader>
@@ -131,7 +130,7 @@ export default function MemoryPage() {
                 />
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No {name} yet. Click Create to start.
+                  {t("memory.noFile", { name })}
                 </p>
               )}
             </CardContent>

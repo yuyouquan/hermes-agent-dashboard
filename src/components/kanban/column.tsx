@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { HermesJob, KanbanColumn } from "@/lib/types";
 import { JobCard } from "./card";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface KanbanColumnViewProps {
   readonly column: KanbanColumn;
@@ -25,6 +26,7 @@ export function KanbanColumnView({
   onAction,
   onSelect,
 }: KanbanColumnViewProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -43,7 +45,7 @@ export function KanbanColumnView({
         <div className="space-y-2">
           {column.jobs.length === 0 ? (
             <p className="px-2 py-8 text-center text-xs text-muted-foreground">
-              No tasks
+              {t("jobs.noTasks")}
             </p>
           ) : (
             column.jobs.map((job) => (

@@ -1,26 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-
-const PAGE_TITLES: Record<string, string> = {
-  "/": "Overview",
-  "/kanban": "Jobs",
-  "/chat": "Chat with Hermes",
-  "/runs": "Active Runs",
-  "/sessions": "Sessions",
-  "/analytics": "Analytics",
-  "/skills": "Skills",
-  "/prompts": "Prompt Library",
-  "/memory": "Memory",
-  "/workspace": "Workspace",
-  "/config": "Config",
-  "/credentials": "Credentials",
-  "/logs": "Logs",
-};
+import { useTranslation } from "@/lib/i18n/context";
 
 export function Header() {
   const pathname = usePathname();
-  const title = PAGE_TITLES[pathname] ?? "Hermes Dashboard";
+  const { dict } = useTranslation();
+  const title =
+    dict.headerTitles[pathname] ?? dict.headerTitles["/"] ?? "Dashboard";
 
   return (
     <header className="flex h-14 items-center border-b border-border px-6">

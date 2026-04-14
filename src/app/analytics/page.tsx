@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Coins, Cpu, MessageSquare, Layers } from "lucide-react";
 import { getSessions } from "@/lib/api";
 import type { HermesSession } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function AnalyticsPage() {
   const [sessions, setSessions] = useState<readonly HermesSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -124,30 +126,30 @@ export default function AnalyticsPage() {
 
       {/* Time-window cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <TimeWindowCard label="Today" tokens={stats.todayTokens} cost={stats.todayCost} />
-        <TimeWindowCard label="7 days" tokens={stats.weekTokens} cost={stats.weekCost} />
-        <TimeWindowCard label="30 days" tokens={stats.monthTokens} cost={stats.monthCost} />
+        <TimeWindowCard label={t("analytics.today")} tokens={stats.todayTokens} cost={stats.todayCost} />
+        <TimeWindowCard label={t("analytics.days7")} tokens={stats.weekTokens} cost={stats.weekCost} />
+        <TimeWindowCard label={t("analytics.days30")} tokens={stats.monthTokens} cost={stats.monthCost} />
       </div>
 
       {/* Totals */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <SummaryCard
-          label="Total Sessions"
+          label={t("analytics.totalSessions")}
           value={stats.totalSessions.toString()}
           icon={<MessageSquare className="h-4 w-4" />}
         />
         <SummaryCard
-          label="Total Tokens"
+          label={t("analytics.totalTokens")}
           value={formatTokens(stats.totalTokens)}
           icon={<Cpu className="h-4 w-4" />}
         />
         <SummaryCard
-          label="Total Cost"
+          label={t("analytics.totalCost")}
           value={`$${stats.totalCost.toFixed(3)}`}
           icon={<Coins className="h-4 w-4" />}
         />
         <SummaryCard
-          label="Platforms"
+          label={t("analytics.platforms")}
           value={stats.byPlatform.length.toString()}
           icon={<Layers className="h-4 w-4" />}
         />
@@ -156,19 +158,22 @@ export default function AnalyticsPage() {
       {/* Breakdown tables */}
       <div className="grid gap-6 lg:grid-cols-3">
         <BreakdownCard
-          title="By Platform"
+          title={t("analytics.byPlatform")}
           data={stats.byPlatform}
           totalTokens={stats.totalTokens}
+          emptyLabel={t("analytics.noDataShort")}
         />
         <BreakdownCard
-          title="By Model"
+          title={t("analytics.byModel")}
           data={stats.byModel}
           totalTokens={stats.totalTokens}
+          emptyLabel={t("analytics.noDataShort")}
         />
         <BreakdownCard
-          title="By Provider"
+          title={t("analytics.byProvider")}
           data={stats.byProvider}
           totalTokens={stats.totalTokens}
+          emptyLabel={t("analytics.noDataShort")}
         />
       </div>
     </div>
@@ -227,10 +232,12 @@ function BreakdownCard({
   title,
   data,
   totalTokens,
+  emptyLabel,
 }: {
   readonly title: string;
   readonly data: readonly [string, { sessions: number; tokens: number; cost: number }][];
   readonly totalTokens: number;
+  readonly emptyLabel: string;
 }) {
   return (
     <Card>
@@ -239,7 +246,7 @@ function BreakdownCard({
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No data</p>
+          <p className="text-sm text-muted-foreground">{emptyLabel}</p>
         ) : (
           <div className="space-y-3">
             {data.slice(0, 10).map(([key, v]) => {

@@ -16,6 +16,7 @@ import { Loader2, Search, Sparkles } from "lucide-react";
 import { getSkills, getSkill } from "@/lib/api";
 import type { HermesSkill } from "@/lib/types";
 import { useDebounce } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<readonly HermesSkill[]>([]);
@@ -26,6 +27,7 @@ export default function SkillsPage() {
   const [selected, setSelected] = useState<HermesSkill | null>(null);
   const [detailContent, setDetailContent] = useState<string>("");
   const [detailLoading, setDetailLoading] = useState(false);
+  const { t } = useTranslation();
 
   const debouncedSearch = useDebounce(search, 200);
 
@@ -101,7 +103,7 @@ export default function SkillsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search skills..."
+            placeholder={t("skills.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -118,7 +120,7 @@ export default function SkillsPage() {
           className="cursor-pointer"
           onClick={() => setCategoryFilter("all")}
         >
-          All
+          {t("skills.allCategories")}
         </Badge>
         {categories.map((c) => (
           <Badge
@@ -150,7 +152,7 @@ export default function SkillsPage() {
                 </div>
               </div>
               <p className="line-clamp-3 text-xs text-muted-foreground">
-                {skill.description || "No description"}
+                {skill.description || t("skills.noDescription")}
               </p>
               <div className="mt-3 flex items-center gap-2">
                 {skill.category && (

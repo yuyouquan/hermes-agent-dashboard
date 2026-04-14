@@ -10,6 +10,7 @@ import { useAutoScroll } from "@/lib/hooks";
 import { useChatContext } from "@/lib/chat-context";
 import type { ChatMessage } from "@/lib/types";
 import { sendChatMessage } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function ChatPanel() {
   const {
@@ -22,6 +23,7 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const { ref, scrollToBottom } = useAutoScroll<HTMLDivElement>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     scrollToBottom();
@@ -91,7 +93,9 @@ export function ChatPanel() {
       }
       addMessage({
         role: "assistant",
-        content: `Error: ${err instanceof Error ? err.message : "Failed to get response"}. Make sure Hermes is running on the configured API URL.`,
+        content: `${t("chat.errorPrefix")}: ${
+          err instanceof Error ? err.message : "Failed to get response"
+        }. ${t("chat.errorSuffix")}`,
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -116,10 +120,10 @@ export function ChatPanel() {
           {messages.length === 0 && (
             <div className="flex h-64 flex-col items-center justify-center text-center">
               <p className="text-lg font-medium text-muted-foreground">
-                Ask Hermes anything
+                {t("chat.emptyTitle")}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Send a message to start a conversation with your Hermes agent.
+                {t("chat.emptySubtitle")}
               </p>
             </div>
           )}
@@ -129,7 +133,7 @@ export function ChatPanel() {
           {loading && messages[messages.length - 1]?.content === "" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Thinking...
+              {t("chat.thinking")}
             </div>
           )}
         </div>
@@ -138,7 +142,7 @@ export function ChatPanel() {
       <div className="border-t border-border p-4">
         <div className="mx-auto flex max-w-3xl items-end gap-2">
           <Textarea
-            placeholder="Ask Hermes a question..."
+            placeholder={t("chat.placeholder")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -163,7 +167,7 @@ export function ChatPanel() {
               size="icon"
               onClick={clearMessages}
               disabled={loading}
-              title="Clear chat"
+              title={t("chat.clearChat")}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

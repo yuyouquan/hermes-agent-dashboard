@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, RefreshCw, Pause, Play } from "lucide-react";
 import { tailLogs } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/context";
 
 type LogFile = "gateway" | "gateway_error" | "agent" | "errors";
 
@@ -38,6 +39,7 @@ export default function LogsPage() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
+  const { t } = useTranslation();
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -93,7 +95,7 @@ export default function LogsPage() {
           </SelectContent>
         </Select>
         <Input
-          placeholder="Filter lines..."
+          placeholder={t("logs.filterPlaceholder")}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="flex-1"
@@ -106,18 +108,18 @@ export default function LogsPage() {
           {paused ? (
             <>
               <Play className="mr-2 h-3.5 w-3.5" />
-              Resume
+              {t("logs.resume")}
             </>
           ) : (
             <>
               <Pause className="mr-2 h-3.5 w-3.5" />
-              Pause
+              {t("logs.pause")}
             </>
           )}
         </Button>
         <Button variant="outline" size="sm" onClick={fetchLogs}>
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Refresh
+          {t("common.refresh")}
         </Button>
       </div>
 
@@ -139,7 +141,7 @@ export default function LogsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {lines.length === 0 ? "No log lines" : "No matches"}
+              {lines.length === 0 ? t("logs.noLines") : t("logs.noMatches")}
             </div>
           ) : (
             <div className="p-3">
@@ -161,8 +163,8 @@ export default function LogsPage() {
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        {filtered.length} of {lines.length} lines · auto-refresh every 2s
-        {paused && " · paused"}
+        {t("logs.linesInfo", { filtered: filtered.length, total: lines.length })}
+        {paused && ` · ${t("logs.paused")}`}
       </p>
     </div>
   );
