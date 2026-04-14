@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Markdown } from "@/components/ui/markdown";
 import type { ChatMessage } from "@/lib/types";
 import { Bot, User } from "lucide-react";
 
@@ -36,9 +37,13 @@ export function ChatBubble({ message }: ChatBubbleProps) {
             : "bg-muted text-foreground"
         )}
       >
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">
-          {message.content}
-        </p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">
+            {message.content}
+          </p>
+        ) : (
+          <Markdown content={message.content} />
+        )}
         <p
           className={cn(
             "mt-1 text-[10px]",

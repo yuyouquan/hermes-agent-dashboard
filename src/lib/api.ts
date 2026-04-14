@@ -13,6 +13,7 @@ import type {
   ConfigContent,
   WorkspaceTree,
   WorkspaceFile,
+  CredentialsResult,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_HERMES_API_URL ?? "http://localhost:8642";
@@ -265,6 +266,11 @@ export async function getJobRun(
 // Config
 export async function getConfig(): Promise<ConfigContent> {
   return fetchApi<ConfigContent>("/api/config");
+}
+
+// Credentials
+export async function getCredentials(): Promise<CredentialsResult> {
+  return fetchApi<CredentialsResult>("/api/credentials");
 }
 
 // Workspace

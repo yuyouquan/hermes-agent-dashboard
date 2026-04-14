@@ -11,6 +11,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Markdown } from "@/components/ui/markdown";
 import { Loader2, Bot, User, Wrench, Brain } from "lucide-react";
 import { getSessionMessages } from "@/lib/api";
 import type { HermesMessage, HermesSession } from "@/lib/types";
@@ -181,9 +182,19 @@ function MessageBubble({ message }: { readonly message: HermesMessage }) {
               : "bg-muted text-foreground"
           }`}
         >
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">
-            {content || (message.tool_calls ? "(tool call)" : "(empty)")}
-          </p>
+          {content ? (
+            isUser ? (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {content}
+              </p>
+            ) : (
+              <Markdown content={content} />
+            )
+          ) : (
+            <p className="text-sm text-muted-foreground italic">
+              {message.tool_calls ? "(tool call)" : "(empty)"}
+            </p>
+          )}
           <p
             className={`mt-1 text-[10px] ${
               isUser ? "text-primary-foreground/60" : "text-muted-foreground"

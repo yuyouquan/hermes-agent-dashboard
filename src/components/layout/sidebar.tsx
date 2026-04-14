@@ -16,6 +16,7 @@ import {
   FolderTree,
   FileCode,
   BookMarked,
+  Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { href: "/memory", label: "Memory", icon: Brain },
   { href: "/workspace", label: "Workspace", icon: FolderTree },
   { href: "/config", label: "Config", icon: FileCode },
+  { href: "/credentials", label: "Credentials", icon: Key },
   { href: "/logs", label: "Logs", icon: FileText },
 ] as const;
 

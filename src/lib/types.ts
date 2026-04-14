@@ -163,6 +163,20 @@ export interface GatewayPlatformStatus {
   readonly class: string;
 }
 
+export interface CredentialEntry {
+  readonly key: string;
+  readonly group: string;
+  readonly set: boolean;
+  readonly masked: string;
+}
+
+export interface CredentialsResult {
+  readonly entries: readonly CredentialEntry[];
+  readonly path: string;
+  readonly exists: boolean;
+  readonly total: number;
+}
+
 export interface ActiveRun {
   readonly run_id: string;
   readonly created_at: number;

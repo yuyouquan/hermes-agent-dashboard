@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/memory": "Memory",
   "/workspace": "Workspace",
   "/config": "Config",
+  "/credentials": "Credentials",
   "/logs": "Logs",
 };
 
