@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { KanbanBoard } from "@/components/kanban/board";
 import { JobDetail } from "@/components/kanban/job-detail";
+import { CreateJobDialog } from "@/components/kanban/create-job-dialog";
 import { useHermesJobs } from "@/lib/hooks";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { HermesJob } from "@/lib/types";
 
 export default function KanbanPage() {
   const { jobs, loading, error, refetch } = useHermesJobs();
   const [selected, setSelected] = useState<HermesJob | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   if (loading) {
     return (
@@ -26,10 +28,16 @@ export default function KanbanPage() {
         <p className="text-sm text-muted-foreground">
           {jobs.length} job{jobs.length !== 1 ? "s" : ""} total
         </p>
-        <Button variant="outline" size="sm" onClick={refetch}>
-          <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={refetch}>
+            <RefreshCw className="mr-2 h-3.5 w-3.5" />
+            Refresh
+          </Button>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 h-3.5 w-3.5" />
+            Create Job
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -46,6 +54,12 @@ export default function KanbanPage() {
         job={selected}
         open={selected !== null}
         onClose={() => setSelected(null)}
+      />
+
+      <CreateJobDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={refetch}
       />
     </div>
   );

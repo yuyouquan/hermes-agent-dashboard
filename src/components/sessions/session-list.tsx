@@ -25,7 +25,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { HermesSession } from "@/lib/types";
-import { getSessions } from "@/lib/api";
+import { getSessions, searchSessions } from "@/lib/api";
+import type { SessionSearchHit } from "@/lib/types";
 import { useDebounce } from "@/lib/hooks";
 import { formatUnixRelative } from "@/lib/time";
 import { SessionDetailDialog } from "./session-detail-dialog";
@@ -48,7 +49,32 @@ export function SessionList() {
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [deepSearchHits, setDeepSearchHits] = useState<readonly SessionSearchHit[]>([]);
+  const [deepSearching, setDeepSearching] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
+
+  // Deep full-text search across message content when query is 2+ chars
+  useEffect(() => {
+    if (debouncedSearch.length < 2) {
+      setDeepSearchHits([]);
+      return;
+    }
+    let cancelled = false;
+    setDeepSearching(true);
+    searchSessions(debouncedSearch, 30)
+      .then((hits) => {
+        if (!cancelled) setDeepSearchHits(hits);
+      })
+      .catch(() => {
+        if (!cancelled) setDeepSearchHits([]);
+      })
+      .finally(() => {
+        if (!cancelled) setDeepSearching(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch]);
 
   const fetchSessions = useCallback(async () => {
     setLoading(true);
@@ -130,6 +156,46 @@ export function SessionList() {
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
+        )}
+
+        {debouncedSearch.length >= 2 && deepSearchHits.length > 0 && (
+          <Card>
+            <CardContent className="p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-xs font-semibold uppercase text-muted-foreground">
+                  Message matches
+                  {deepSearching && (
+                    <Loader2 className="ml-2 inline h-3 w-3 animate-spin" />
+                  )}
+                </h4>
+                <span className="text-[10px] text-muted-foreground">
+                  {deepSearchHits.length} hits
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {deepSearchHits.slice(0, 10).map((hit) => (
+                  <button
+                    key={`${hit.session_id}-${hit.id}`}
+                    onClick={() => setSelectedSessionId(hit.session_id)}
+                    className="w-full rounded border border-border p-2 text-left text-xs transition-colors hover:border-primary/30 hover:bg-accent"
+                  >
+                    <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                      <span className="font-mono uppercase">{hit.source}</span>
+                      <span>·</span>
+                      <span className="capitalize">{hit.role}</span>
+                      {hit.tool_name && (
+                        <>
+                          <span>·</span>
+                          <span>{hit.tool_name}</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="line-clamp-2 text-muted-foreground">{hit.snippet}</p>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {loading && sessions.length === 0 ? (

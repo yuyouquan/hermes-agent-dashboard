@@ -4,9 +4,13 @@ import { usePathname } from "next/navigation";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Overview",
-  "/kanban": "Task Board",
+  "/kanban": "Jobs",
   "/chat": "Chat with Hermes",
   "/sessions": "Sessions",
+  "/analytics": "Analytics",
+  "/skills": "Skills",
+  "/memory": "Memory",
+  "/logs": "Logs",
 };
 
 export function Header() {

@@ -131,6 +131,49 @@ export interface DashboardStats {
   readonly upcomingToday: number;
 }
 
+export interface MemoryFile {
+  readonly name: string;
+  readonly path?: string;
+  readonly content?: string;
+  readonly size?: number;
+  readonly modified_at?: number;
+  readonly error?: string;
+}
+
+export interface HermesSkill {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly version: string;
+  readonly author: string;
+  readonly path: string;
+  readonly category: string;
+}
+
+export interface LogTailResult {
+  readonly file: string;
+  readonly path: string;
+  readonly lines: readonly string[];
+  readonly size?: number;
+}
+
+export interface GatewayPlatformStatus {
+  readonly platform: string;
+  readonly connected: boolean;
+  readonly class: string;
+}
+
+export interface SessionSearchHit {
+  readonly id: number;
+  readonly session_id: string;
+  readonly role: string;
+  readonly snippet: string;
+  readonly timestamp: number;
+  readonly tool_name: string | null;
+  readonly source: string;
+  readonly model?: string | null;
+}
+
 /** Derive kanban bucket from real job fields */
 export function getJobStatus(job: HermesJob): JobStatus {
   if (job.state === "paused") return "paused";

@@ -3,6 +3,11 @@ import type {
   HermesSession,
   HermesMessage,
   HealthStatus,
+  MemoryFile,
+  HermesSkill,
+  LogTailResult,
+  GatewayPlatformStatus,
+  SessionSearchHit,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_HERMES_API_URL ?? "http://localhost:8642";
@@ -52,10 +57,19 @@ export async function getJob(id: string): Promise<HermesJob> {
   return fetchApi<HermesJob>(`/api/jobs/${encodeURIComponent(id)}`);
 }
 
+export interface CreateJobInput {
+  readonly name: string;
+  readonly schedule: string;
+  readonly prompt: string;
+  readonly deliver?: string;
+  readonly skills?: readonly string[];
+  readonly repeat?: { readonly times?: number };
+}
+
 export async function createJob(
-  job: Omit<HermesJob, "id" | "enabled" | "paused">
-): Promise<HermesJob> {
-  return fetchApi<HermesJob>("/api/jobs", {
+  job: CreateJobInput
+): Promise<{ readonly job: HermesJob }> {
+  return fetchApi<{ job: HermesJob }>("/api/jobs", {
     method: "POST",
     body: JSON.stringify(job),
   });
@@ -127,6 +141,73 @@ export async function getSessionMessages(
   return fetchApi<SessionDetail>(
     `/api/sessions/${encodeURIComponent(sessionId)}/messages`
   );
+}
+
+// Memory
+export async function getMemory(): Promise<readonly MemoryFile[]> {
+  const res = await fetchApi<{ files: MemoryFile[] }>("/api/memory");
+  return res.files;
+}
+
+export async function updateMemory(
+  name: "MEMORY.md" | "USER.md",
+  content: string
+): Promise<void> {
+  await fetchApi<{ name: string; size: number }>(
+    `/api/memory/${encodeURIComponent(name)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ content }),
+    }
+  );
+}
+
+// Skills
+export async function getSkills(): Promise<readonly HermesSkill[]> {
+  const res = await fetchApi<{ skills: HermesSkill[]; total: number }>(
+    "/api/skills"
+  );
+  return res.skills;
+}
+
+export async function getSkill(id: string): Promise<string> {
+  const res = await fetchApi<{ id: string; content: string }>(
+    `/api/skills/${id
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`
+  );
+  return res.content;
+}
+
+// Logs
+export async function tailLogs(
+  file: "gateway" | "gateway_error" | "agent" | "errors" = "gateway",
+  lines = 500
+): Promise<LogTailResult> {
+  return fetchApi<LogTailResult>(`/api/logs/tail?file=${file}&lines=${lines}`);
+}
+
+// Gateway status
+export async function getGatewayStatus(): Promise<
+  readonly GatewayPlatformStatus[]
+> {
+  const res = await fetchApi<{ platforms: GatewayPlatformStatus[] }>(
+    "/api/gateway/status"
+  );
+  return res.platforms;
+}
+
+// Session search
+export async function searchSessions(
+  query: string,
+  limit = 50
+): Promise<readonly SessionSearchHit[]> {
+  if (!query.trim()) return [];
+  const res = await fetchApi<{ results: SessionSearchHit[]; total: number }>(
+    `/api/sessions/search?q=${encodeURIComponent(query)}&limit=${limit}`
+  );
+  return res.results;
 }
 
 // Chat

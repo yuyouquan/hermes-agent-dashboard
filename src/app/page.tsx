@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentJobs } from "@/components/dashboard/recent-jobs";
+import { PlatformStatus } from "@/components/dashboard/platform-status";
 import { useHermesJobs } from "@/lib/hooks";
 import { getJobStatus, type DashboardStats } from "@/lib/types";
 import { Loader2 } from "lucide-react";
@@ -65,26 +66,7 @@ export default function OverviewPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <RecentJobs jobs={jobs} />
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="mb-4 text-base font-semibold">Quick Start</h3>
-          <div className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              1. Make sure Hermes Agent gateway is running with the API server enabled.
-            </p>
-            <p>
-              2. Visit the <strong>Kanban</strong> page to manage cron jobs — pause,
-              resume, run immediately, or view detailed status & error history.
-            </p>
-            <p>
-              3. Click any job card to see the full prompt, schedule details, last
-              run error messages, and delivery target.
-            </p>
-            <p>
-              4. Use <strong>Chat</strong> to send messages to Hermes directly from
-              the browser.
-            </p>
-          </div>
-        </div>
+        <PlatformStatus />
       </div>
     </div>
   );

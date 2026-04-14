@@ -7,17 +7,24 @@ import {
   Kanban,
   MessageSquare,
   History,
-  Settings,
   Zap,
+  BarChart3,
+  Brain,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
 
 const NAV_ITEMS = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
-  { href: "/kanban", label: "Kanban", icon: Kanban },
+  { href: "/kanban", label: "Jobs", icon: Kanban },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/sessions", label: "Sessions", icon: History },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/skills", label: "Skills", icon: Sparkles },
+  { href: "/memory", label: "Memory", icon: Brain },
+  { href: "/logs", label: "Logs", icon: FileText },
 ] as const;
 
 export function Sidebar() {
