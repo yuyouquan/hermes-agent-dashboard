@@ -163,6 +163,57 @@ export interface GatewayPlatformStatus {
   readonly class: string;
 }
 
+export interface ActiveRun {
+  readonly run_id: string;
+  readonly created_at: number;
+  readonly age_seconds: number;
+  readonly queue_size: number;
+}
+
+export interface JobRunOutput {
+  readonly timestamp: string;
+  readonly path: string;
+  readonly size: number;
+  readonly modified_at: number;
+}
+
+export interface ConfigContent {
+  readonly content: string;
+  readonly path: string;
+  readonly exists: boolean;
+  readonly size?: number;
+  readonly modified_at?: number;
+}
+
+export interface WorkspaceEntry {
+  readonly name: string;
+  readonly is_dir: boolean;
+  readonly size: number;
+  readonly modified_at: number;
+}
+
+export interface WorkspaceTree {
+  readonly root: string;
+  readonly path: string;
+  readonly entries: readonly WorkspaceEntry[];
+}
+
+export interface WorkspaceFile {
+  readonly path: string;
+  readonly content: string;
+  readonly size: number;
+  readonly binary: boolean;
+}
+
+export interface PromptTemplate {
+  readonly id: string;
+  readonly name: string;
+  readonly content: string;
+  readonly tags: readonly string[];
+  readonly created_at: number;
+  readonly updated_at: number;
+}
+
 export interface SessionSearchHit {
   readonly id: number;
   readonly session_id: string;

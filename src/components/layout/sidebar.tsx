@@ -12,6 +12,10 @@ import {
   Brain,
   Sparkles,
   FileText,
+  Radio,
+  FolderTree,
+  FileCode,
+  BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
@@ -20,10 +24,14 @@ const NAV_ITEMS = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/kanban", label: "Jobs", icon: Kanban },
   { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/runs", label: "Runs", icon: Radio },
   { href: "/sessions", label: "Sessions", icon: History },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/skills", label: "Skills", icon: Sparkles },
+  { href: "/prompts", label: "Prompts", icon: BookMarked },
   { href: "/memory", label: "Memory", icon: Brain },
+  { href: "/workspace", label: "Workspace", icon: FolderTree },
+  { href: "/config", label: "Config", icon: FileCode },
   { href: "/logs", label: "Logs", icon: FileText },
 ] as const;
 

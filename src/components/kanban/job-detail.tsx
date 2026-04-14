@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -10,9 +11,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import type { HermesJob, JobState } from "@/lib/types";
-import { formatDateTime, formatRelativeTime } from "@/lib/time";
-import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import type { HermesJob, JobState, JobRunOutput } from "@/lib/types";
+import { formatDateTime, formatRelativeTime, formatUnixTime } from "@/lib/time";
+import { AlertCircle, CheckCircle2, FileText, Loader2 } from "lucide-react";
+import { listJobRuns, getJobRun } from "@/lib/api";
 
 interface JobDetailProps {
   readonly job: HermesJob | null;
@@ -27,6 +29,39 @@ const STATE_VARIANT: Record<JobState, "default" | "secondary" | "outline"> = {
 };
 
 export function JobDetail({ job, open, onClose }: JobDetailProps) {
+  const [runs, setRuns] = useState<readonly JobRunOutput[]>([]);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [selectedRunContent, setSelectedRunContent] = useState<string | null>(null);
+  const [selectedRunTimestamp, setSelectedRunTimestamp] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!job || !open) {
+      setRuns([]);
+      setSelectedRunContent(null);
+      setSelectedRunTimestamp(null);
+      return;
+    }
+    setRunsLoading(true);
+    listJobRuns(job.id)
+      .then(setRuns)
+      .catch(() => setRuns([]))
+      .finally(() => setRunsLoading(false));
+  }, [job, open]);
+
+  const handleRunClick = async (timestamp: string) => {
+    if (!job) return;
+    setSelectedRunTimestamp(timestamp);
+    setSelectedRunContent(null);
+    try {
+      const result = await getJobRun(job.id, timestamp);
+      setSelectedRunContent(result.content);
+    } catch (err) {
+      setSelectedRunContent(
+        err instanceof Error ? `Error: ${err.message}` : "Failed to load"
+      );
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
@@ -190,6 +225,53 @@ export function JobDetail({ job, open, onClose }: JobDetailProps) {
                     </Section>
                   </>
                 )}
+
+                {/* Run history */}
+                <Separator />
+                <Section title="Run History">
+                  {runsLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : runs.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No past runs recorded yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-1">
+                      {runs.map((run) => (
+                        <div key={run.timestamp}>
+                          <button
+                            onClick={() => handleRunClick(run.timestamp)}
+                            className={`flex w-full items-center gap-2 rounded border p-2 text-left text-xs transition-colors ${
+                              selectedRunTimestamp === run.timestamp
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/30"
+                            }`}
+                          >
+                            <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            <span className="flex-1 truncate font-mono">
+                              {run.timestamp}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {(run.size / 1024).toFixed(1)}K ·{" "}
+                              {formatUnixTime(run.modified_at)}
+                            </span>
+                          </button>
+                          {selectedRunTimestamp === run.timestamp && (
+                            <div className="mt-1 rounded border border-border bg-muted/40 p-2">
+                              {selectedRunContent === null ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                              ) : (
+                                <pre className="whitespace-pre-wrap break-words font-mono text-[10px] leading-relaxed">
+                                  {selectedRunContent}
+                                </pre>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Section>
               </div>
             </ScrollArea>
           </>

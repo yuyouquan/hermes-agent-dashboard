@@ -8,6 +8,11 @@ import type {
   LogTailResult,
   GatewayPlatformStatus,
   SessionSearchHit,
+  ActiveRun,
+  JobRunOutput,
+  ConfigContent,
+  WorkspaceTree,
+  WorkspaceFile,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_HERMES_API_URL ?? "http://localhost:8642";
@@ -208,6 +213,70 @@ export async function searchSessions(
     `/api/sessions/search?q=${encodeURIComponent(query)}&limit=${limit}`
   );
   return res.results;
+}
+
+// Active runs
+export async function listActiveRuns(): Promise<{
+  readonly runs: readonly ActiveRun[];
+  readonly total: number;
+  readonly max_concurrent: number;
+}> {
+  return fetchApi<{
+    runs: ActiveRun[];
+    total: number;
+    max_concurrent: number;
+  }>("/v1/runs");
+}
+
+export async function createRun(
+  prompt: string,
+  model?: string
+): Promise<{ readonly run_id: string; readonly status: string }> {
+  return fetchApi<{ run_id: string; status: string }>("/v1/runs", {
+    method: "POST",
+    body: JSON.stringify({
+      input: prompt,
+      ...(model ? { model } : {}),
+    }),
+  });
+}
+
+// Job run history
+export async function listJobRuns(
+  jobId: string
+): Promise<readonly JobRunOutput[]> {
+  const res = await fetchApi<{ job_id: string; runs: JobRunOutput[] }>(
+    `/api/jobs/${encodeURIComponent(jobId)}/runs`
+  );
+  return res.runs;
+}
+
+export async function getJobRun(
+  jobId: string,
+  timestamp: string
+): Promise<{ readonly content: string; readonly size: number }> {
+  return fetchApi<{ content: string; size: number }>(
+    `/api/jobs/${encodeURIComponent(jobId)}/runs/${encodeURIComponent(
+      timestamp
+    )}`
+  );
+}
+
+// Config
+export async function getConfig(): Promise<ConfigContent> {
+  return fetchApi<ConfigContent>("/api/config");
+}
+
+// Workspace
+export async function getWorkspaceTree(path = ""): Promise<WorkspaceTree> {
+  const q = path ? `?path=${encodeURIComponent(path)}` : "";
+  return fetchApi<WorkspaceTree>(`/api/workspace/tree${q}`);
+}
+
+export async function getWorkspaceFile(path: string): Promise<WorkspaceFile> {
+  return fetchApi<WorkspaceFile>(
+    `/api/workspace/file?path=${encodeURIComponent(path)}`
+  );
 }
 
 // Chat

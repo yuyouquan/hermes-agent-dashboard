@@ -6,10 +6,14 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Overview",
   "/kanban": "Jobs",
   "/chat": "Chat with Hermes",
+  "/runs": "Active Runs",
   "/sessions": "Sessions",
   "/analytics": "Analytics",
   "/skills": "Skills",
+  "/prompts": "Prompt Library",
   "/memory": "Memory",
+  "/workspace": "Workspace",
+  "/config": "Config",
   "/logs": "Logs",
 };
 
