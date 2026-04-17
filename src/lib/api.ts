@@ -288,7 +288,11 @@ export async function getWorkspaceFile(path: string): Promise<WorkspaceFile> {
 // Chat
 export async function sendChatMessage(
   message: string,
-  sessionId?: string
+  options?: {
+    readonly sessionId?: string;
+    readonly workdir?: string;
+    readonly history?: readonly { role: string; content: string }[];
+  }
 ): Promise<ReadableStream<Uint8Array> | null> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -298,16 +302,37 @@ export async function sendChatMessage(
   if (apiKey) {
     headers["Authorization"] = `Bearer ${apiKey}`;
   }
-  if (sessionId) {
-    headers["X-Hermes-Session-Id"] = sessionId;
+  if (options?.sessionId) {
+    headers["X-Hermes-Session-Id"] = options.sessionId;
   }
+
+  const messages: { role: string; content: string }[] = [];
+
+  // Inject workdir as system context
+  if (options?.workdir) {
+    messages.push({
+      role: "system",
+      content: `Working directory: ${options.workdir}\nWhen executing commands or referencing files, use this directory as the base path.`,
+    });
+  }
+
+  // Add conversation history (last 20 messages for context)
+  if (options?.history) {
+    const recent = options.history.slice(-20);
+    for (const msg of recent) {
+      messages.push({ role: msg.role, content: msg.content });
+    }
+  }
+
+  // Add current message
+  messages.push({ role: "user", content: message });
 
   const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     method: "POST",
     headers,
     body: JSON.stringify({
       model: "hermes",
-      messages: [{ role: "user", content: message }],
+      messages,
       stream: true,
     }),
   });

@@ -8,13 +8,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatBubble } from "./chat-bubble";
 import { useAutoScroll } from "@/lib/hooks";
 import { useChatContext } from "@/lib/chat-context";
-import type { ChatMessage } from "@/lib/types";
 import { sendChatMessage } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
 
 export function ChatPanel() {
   const {
-    messages,
+    activeSession,
     addMessage,
     updateLastMessage,
     removeLastMessage,
@@ -25,13 +24,15 @@ export function ChatPanel() {
   const { ref, scrollToBottom } = useAutoScroll<HTMLDivElement>();
   const { t } = useTranslation();
 
+  const messages = activeSession?.messages ?? [];
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || !activeSession) return;
 
     addMessage({
       role: "user",
@@ -42,7 +43,14 @@ export function ChatPanel() {
     setLoading(true);
 
     try {
-      const stream = await sendChatMessage(text);
+      const stream = await sendChatMessage(text, {
+        sessionId: activeSession.hermesSessionId,
+        workdir: activeSession.workdir,
+        history: activeSession.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      });
 
       if (!stream) {
         throw new Error("No response stream");
@@ -87,7 +95,6 @@ export function ChatPanel() {
         updateLastMessage("Response received (no streaming content)");
       }
     } catch (err) {
-      // Remove empty assistant placeholder if present
       if (messages.length > 0 && messages[messages.length - 1]?.content === "") {
         removeLastMessage();
       }
@@ -101,7 +108,7 @@ export function ChatPanel() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages, addMessage, updateLastMessage, removeLastMessage]);
+  }, [input, loading, activeSession, messages, addMessage, updateLastMessage, removeLastMessage, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -112,6 +119,8 @@ export function ChatPanel() {
     },
     [handleSend]
   );
+
+  if (!activeSession) return null;
 
   return (
     <div className="flex h-full flex-col">

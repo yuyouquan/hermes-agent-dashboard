@@ -111,6 +111,16 @@ export interface ChatMessage {
   readonly timestamp: string;
 }
 
+export interface ChatSession {
+  readonly id: string;
+  readonly name: string;
+  readonly workdir: string;
+  readonly hermesSessionId?: string;
+  readonly messages: readonly ChatMessage[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 export interface HealthStatus {
   readonly status: "healthy" | "unhealthy" | "unknown";
   readonly timestamp: string;
